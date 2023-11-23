@@ -321,12 +321,7 @@ static int zynq_phy_init(struct udevice *dev)
 	int ret;
 	struct zynq_gem_priv *priv = dev_get_priv(dev);
 	struct zynq_gem_regs *regs_mdio = priv->mdiobase;
-	const u32 supported = SUPPORTED_10baseT_Half |
-			SUPPORTED_10baseT_Full |
-			SUPPORTED_100baseT_Half |
-			SUPPORTED_100baseT_Full |
-			SUPPORTED_1000baseT_Half |
-			SUPPORTED_1000baseT_Full;
+	const u32 supported = SUPPORTED_100baseT_Full;
 
 	/* Enable only MDIO bus */
 	writel(ZYNQ_GEM_NWCTRL_MDEN_MASK, &regs_mdio->nwctrl);

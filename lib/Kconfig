@@ -1031,3 +1031,9 @@ menu "FWU Multi Bank Updates"
 source lib/fwu_updates/Kconfig
 
 endmenu
+
+menu "Cegelec Firmware Blob"
+
+source lib/device_params/Kconfig
+
+endmenu

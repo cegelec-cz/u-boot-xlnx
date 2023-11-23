@@ -9,6 +9,8 @@
 struct blk_desc;
 struct disk_partition;
 
+struct blk_desc *fastboot_mmc_get_dev(char *response);
+
 /**
  * fastboot_mmc_get_part_info() - Lookup eMMC partion by name
  *

@@ -64,6 +64,8 @@ obj-$(CONFIG_TPM_V2) += tpm-v2.o
 endif
 
 obj-y += crypto/
+obj-$(CONFIG_CEGELEC_FW_BLOB) += firmware_blob/
+obj-$(CONFIG_CEGELEC_FW_BLOB) += device_params/
 
 obj-$(CONFIG_$(SPL_TPL_)GENERATE_ACPI_TABLE) += acpi/
 obj-$(CONFIG_$(SPL_)MD5) += md5.o
