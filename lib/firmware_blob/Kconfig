@@ -1,0 +1,2 @@
+config CEGELEC_FW_BLOB
+	bool "Enable verification and loading of Cegelc FW blobs"
