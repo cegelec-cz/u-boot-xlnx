@@ -434,7 +434,7 @@ static int get_emmc_state_internal(uint32_t state_addr, struct emmc_state *emmc_
 		return 1;
 	}
 
-	uint8_t buf[DEVICE_PARAMS_MMC_BLKSIZE];
+	uint8_t buf[DEVICE_PARAMS_EMMC_BLOCKSIZE];
 	if (mmc->blksz > sizeof(buf))
 	{
 		printf("MMC blocksize too big: %u\n", mmc->blksz);
@@ -467,7 +467,7 @@ static int write_emmc_state_internal(uint32_t state_addr, const struct emmc_stat
 		return 1;
 	}
 
-	uint8_t buf[DEVICE_PARAMS_MMC_BLKSIZE];
+	uint8_t buf[DEVICE_PARAMS_EMMC_BLOCKSIZE];
 	if (mmc->blksz > sizeof(buf))
 	{
 		printf("MMC blocksize too big: %u\n", mmc->blksz);

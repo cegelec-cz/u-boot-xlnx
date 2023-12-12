@@ -68,11 +68,11 @@ config DEVICE_PARAMS_MMC_DEV
 	help
 	  eMMC device for state, backup and software partitions.
 
-config DEFAULT_EMMC_BLOCKSIZE
-	int "Default eMMC block size"
+config DEVICE_PARAMS_EMMC_BLOCKSIZE
+	int "eMMC block size"
 	default 512
 	help
-	  Default eMMC blocksize. This is only used for compile-time validation
-	  of default eMMC layout validity.
+	  This is used to determine size of buffers for reading eMMC blocks and for
+	  compile-time validation of default eMMC layout validity.
 
 endif # CEGELEC_FW_BLOB
