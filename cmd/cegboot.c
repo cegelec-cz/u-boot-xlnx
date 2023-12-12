@@ -13,6 +13,7 @@
 #include <div64.h>
 #include <env.h>
 #include <firmware_blob.h>
+#include <validate_blob.h>
 
 typedef enum
 {

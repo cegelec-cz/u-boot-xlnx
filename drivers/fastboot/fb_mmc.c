@@ -21,6 +21,7 @@
 #include <android_image.h>
 #include <firmware_blob.h>
 #include <boot_policy.h>
+#include <validate_blob.h>
 
 // FIXME
 #define CONFIG_FASTBOOT_FLASH_MMC_DEV 0
