@@ -18,26 +18,6 @@
 #include <device_params.h>
 #include <boot_policy.h>
 
-// TODO move to Kconfig
-#define DEFAULT_MAC_ADDR "a2:ce:6e:1e:c0:10"
-#define DEFAULT_IP_ADDR "172.16.127.10"
-#define DEFAULT_NETMASK "255.255.255.0"
-
-// TODO move to Kconfig
-#define DEFAULT_EMMC_STATE_ADDR 0x40000000UL	// Starts at 1 GiB
-#define DEFAULT_EMMC_STATE_SIZE 0x00100000UL	// 1 MiB
-#define DEFAULT_EMMC_BACKUP_ADDR 0x48000000UL	// Starts at 1 GiB + 128 MiB
-#define DEFAULT_EMMC_BACKUP_SIZE 0x10000000UL	// 256 MiB
-#define DEFAULT_EMMC_SOFTWARE_ADDR 0x60000000UL // Starts at 1 GiB + 512 MiB
-#define DEFAULT_EMMC_SOFTWARE_SIZE 0x10000000UL // 256 MiB
-
-// TODO move to Kconfig
-#define MAX_SW_BLOB_SIZE 0x6400000UL // 100 MiB
-
-// TODO move to Kconfig
-#define DEVICE_PARAMS_MMC_DEV 0
-#define DEVICE_PARAMS_MMC_BLKSIZE 512
-
 #define MAX_UINT32 0xFFFFFFFFUL
 #define MAC_IP_ADDR_STR_LEN 20
 

@@ -1034,6 +1034,6 @@ endmenu
 
 menu "Cegelec Firmware Blob"
 
-source lib/firmware_blob/Kconfig
+source lib/device_params/Kconfig
 
 endmenu

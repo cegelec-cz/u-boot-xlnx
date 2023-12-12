@@ -1,0 +1,78 @@
+config CEGELEC_FW_BLOB
+	bool "Enable verification and loading of Cegelec FW blobs"
+
+if CEGELEC_FW_BLOB
+
+config DEFAULT_MAC_ADDR
+	string "Default MAC address"
+	default "a2:ce:6e:1e:c0:ff"
+	help
+	  Default MAC address used if ethernet settings CRC is invalid
+
+config DEFAULT_IP_ADDR
+	string "Default IP address"
+	default "172.16.127.123"
+	help
+	  Default IP address used if ethernet settings CRC is invalid
+
+config DEFAULT_NETMASK
+	string "Default netmask"
+	default "255.255.255.0"
+	help
+	  Default netmask used if ethernet settings CRC is invalid
+
+config DEFAULT_EMMC_STATE_ADDR
+	hex "Default eMMC state address"
+	default 0x40000000
+	help
+	  Default address of eMMC state block. This must be algined to the eMMC
+	  block size and must not overlap with any other eMMC region.
+
+config DEFAULT_EMMC_BACKUP_ADDR
+	hex "Default eMMC backup partition address"
+	default 0x48000000
+	help
+	  Default address of eMMC backup partition. This must be algined to the eMMC
+	  block size and must not overlap with any other eMMC region.
+
+config DEFAULT_EMMC_BACKUP_SIZE
+	hex "Default eMMC backup partition size"
+	default 0x10000000
+	help
+	  Default size of eMMC backup partition. This must be algined to the eMMC
+	  block size.
+
+config DEFAULT_EMMC_SOFTWARE_ADDR
+	hex "Default eMMC software partition address"
+	default 0x60000000
+	help
+	  Default address of eMMC software partition. This must be algined to the eMMC
+	  block size and must not overlap with any other eMMC region.
+
+config DEFAULT_EMMC_SOFTWARE_SIZE
+	hex "Default eMMC software partition size"
+	default 0x10000000
+	help
+	  Default size of eMMC software partition. This must be algined to the eMMC
+	  block size.
+
+config MAX_SW_BLOB_SIZE
+	hex "Maximum supported size of FW blob"
+	default 0x8000000
+	help
+	  Maximum supported size of FW blob.
+
+config DEVICE_PARAMS_MMC_DEV
+	hex "eMMC device for state, backup and software partitions"
+	int 0
+	help
+	  eMMC device for state, backup and software partitions.
+
+config DEFAULT_EMMC_BLOCKSIZE
+	int "Default eMMC block size"
+	default 512
+	help
+	  Default eMMC blocksize. This is only used for compile-time validation
+	  of default eMMC layout validity.
+
+endif # CEGELEC_FW_BLOB
