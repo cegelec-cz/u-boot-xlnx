@@ -63,8 +63,8 @@ config MAX_SW_BLOB_SIZE
 	  Maximum supported size of FW blob.
 
 config DEVICE_PARAMS_MMC_DEV
-	hex "eMMC device for state, backup and software partitions"
-	int 0
+	int "eMMC device for state, backup and software partitions"
+	default 0 
 	help
 	  eMMC device for state, backup and software partitions.
 
