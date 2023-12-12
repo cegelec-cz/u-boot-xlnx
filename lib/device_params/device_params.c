@@ -86,7 +86,7 @@ CASSERT(sizeof(struct flash_params) < FLASH_PARAMS_OFFSET_FROM_END);
 
 static const struct emmc_layout default_emmc_layout = {
 	.state_addr = CONFIG_DEFAULT_EMMC_STATE_ADDR,
-	.state_size = CONFIG_DEFAULT_EMMC_STATE_SIZE,
+	.state_size = CONFIG_DEVICE_PARAMS_EMMC_BLOCKSIZE,
 	.backup_addr = CONFIG_DEFAULT_EMMC_BACKUP_ADDR,
 	.backup_size = CONFIG_DEFAULT_EMMC_BACKUP_SIZE,
 	.software_addr = CONFIG_DEFAULT_EMMC_SOFTWARE_ADDR,
@@ -95,11 +95,11 @@ static const struct emmc_layout default_emmc_layout = {
 };
 // Compile-time check of default emmc layout validity
 CASSERT(
-	CONFIG_DEFAULT_EMMC_STATE_SIZE >= sizeof(struct emmc_state) &&
+	CONFIG_DEVICE_PARAMS_EMMC_BLOCKSIZE >= sizeof(struct emmc_state) &&
 	CONFIG_DEFAULT_EMMC_BACKUP_SIZE >= CONFIG_MAX_SW_BLOB_SIZE &&
 	CONFIG_DEFAULT_EMMC_SOFTWARE_SIZE >= CONFIG_MAX_SW_BLOB_SIZE &&
 	!CHECK_EMMC_OVERLAP(CONFIG_DEFAULT_EMMC_STATE_ADDR,
-						CONFIG_DEFAULT_EMMC_STATE_SIZE,
+						CONFIG_DEVICE_PARAMS_EMMC_BLOCKSIZE,
 						CONFIG_DEFAULT_EMMC_BACKUP_ADDR,
 						CONFIG_DEFAULT_EMMC_BACKUP_SIZE,
 						CONFIG_DEFAULT_EMMC_SOFTWARE_ADDR,
