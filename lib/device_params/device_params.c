@@ -85,25 +85,25 @@ static struct
 CASSERT(sizeof(struct flash_params) < FLASH_PARAMS_OFFSET_FROM_END);
 
 static const struct emmc_layout default_emmc_layout = {
-	.state_addr = DEFAULT_EMMC_STATE_ADDR,
-	.state_size = DEFAULT_EMMC_STATE_SIZE,
-	.backup_addr = DEFAULT_EMMC_BACKUP_ADDR,
-	.backup_size = DEFAULT_EMMC_BACKUP_SIZE,
-	.software_addr = DEFAULT_EMMC_SOFTWARE_ADDR,
-	.software_size = DEFAULT_EMMC_SOFTWARE_SIZE,
+	.state_addr = CONFIG_DEFAULT_EMMC_STATE_ADDR,
+	.state_size = CONFIG_DEFAULT_EMMC_STATE_SIZE,
+	.backup_addr = CONFIG_DEFAULT_EMMC_BACKUP_ADDR,
+	.backup_size = CONFIG_DEFAULT_EMMC_BACKUP_SIZE,
+	.software_addr = CONFIG_DEFAULT_EMMC_SOFTWARE_ADDR,
+	.software_size = CONFIG_DEFAULT_EMMC_SOFTWARE_SIZE,
 	.crc = 0,
 };
 // Compile-time check of default emmc layout validity
 CASSERT(
-	DEFAULT_EMMC_STATE_SIZE >= sizeof(struct emmc_state) &&
-	DEFAULT_EMMC_BACKUP_SIZE >= MAX_SW_BLOB_SIZE &&
-	DEFAULT_EMMC_SOFTWARE_SIZE >= MAX_SW_BLOB_SIZE &&
-	!CHECK_EMMC_OVERLAP(DEFAULT_EMMC_STATE_ADDR,
-						DEFAULT_EMMC_STATE_SIZE,
-						DEFAULT_EMMC_BACKUP_ADDR,
-						DEFAULT_EMMC_BACKUP_SIZE,
-						DEFAULT_EMMC_SOFTWARE_ADDR,
-						DEFAULT_EMMC_SOFTWARE_SIZE));
+	CONFIG_DEFAULT_EMMC_STATE_SIZE >= sizeof(struct emmc_state) &&
+	CONFIG_DEFAULT_EMMC_BACKUP_SIZE >= CONFIG_MAX_SW_BLOB_SIZE &&
+	CONFIG_DEFAULT_EMMC_SOFTWARE_SIZE >= CONFIG_MAX_SW_BLOB_SIZE &&
+	!CHECK_EMMC_OVERLAP(CONFIG_DEFAULT_EMMC_STATE_ADDR,
+						CONFIG_DEFAULT_EMMC_STATE_SIZE,
+						CONFIG_DEFAULT_EMMC_BACKUP_ADDR,
+						CONFIG_DEFAULT_EMMC_BACKUP_SIZE,
+						CONFIG_DEFAULT_EMMC_SOFTWARE_ADDR,
+						CONFIG_DEFAULT_EMMC_SOFTWARE_SIZE));
 
 struct flash_params device_flash_params;
 struct flash_params modified_device_flash_params;
@@ -173,12 +173,12 @@ int check_emmc_layout(const struct emmc_layout *emmc_layout, const char **feedba
 		feedback_str = err_feedback[DEVPARAMS_ERR_EMMC_LAYOUT_INVALID_STATE_SIZE];
 		ret = 1;
 	}
-	else if (emmc_layout->backup_size < MAX_SW_BLOB_SIZE)
+	else if (emmc_layout->backup_size < CONFIG_MAX_SW_BLOB_SIZE)
 	{
 		feedback_str = err_feedback[DEVPARAMS_ERR_EMMC_LAYOUT_INVALID_BACKUP_SIZE];
 		ret = 1;
 	}
-	else if (emmc_layout->software_size < MAX_SW_BLOB_SIZE)
+	else if (emmc_layout->software_size < CONFIG_MAX_SW_BLOB_SIZE)
 	{
 		feedback_str = err_feedback[DEVPARAMS_ERR_EMMC_LAYOUT_INVALID_SW_SIZE];
 		ret = 1;
@@ -257,9 +257,9 @@ const char *get_boot_policy_name(board_boot_policy_t policy)
 
 static void write_default_ethernet_settings(struct ethernet_settings *ethernet_settings)
 {
-	string_to_enetaddr(DEFAULT_MAC_ADDR, ethernet_settings->mac_address);
-	ethernet_settings->ip_address = string_to_ip(DEFAULT_IP_ADDR);
-	ethernet_settings->netmask = string_to_ip(DEFAULT_NETMASK);
+	string_to_enetaddr(CONFIG_DEFAULT_MAC_ADDR, ethernet_settings->mac_address);
+	ethernet_settings->ip_address = string_to_ip(CONFIG_DEFAULT_IP_ADDR);
+	ethernet_settings->netmask = string_to_ip(CONFIG_DEFAULT_NETMASK);
 	ethernet_settings->crc = compute_ethernet_settings_crc(ethernet_settings);
 }
 
@@ -389,7 +389,7 @@ static int validate_flash_params(struct flash_params *flash_params, int set_defa
 struct blk_desc *mmc_get_device_params_dev()
 {
 	struct blk_desc *ret = blk_get_dev("mmc",
-									   DEVICE_PARAMS_MMC_DEV);
+									   CONFIG_DEVICE_PARAMS_MMC_DEV);
 
 	if (!ret || ret->type == DEV_TYPE_UNKNOWN)
 	{
@@ -434,7 +434,7 @@ static int get_emmc_state_internal(uint32_t state_addr, struct emmc_state *emmc_
 		return 1;
 	}
 
-	uint8_t buf[DEVICE_PARAMS_EMMC_BLOCKSIZE];
+	uint8_t buf[CONFIG_DEVICE_PARAMS_EMMC_BLOCKSIZE];
 	if (mmc->blksz > sizeof(buf))
 	{
 		printf("MMC blocksize too big: %u\n", mmc->blksz);
@@ -467,7 +467,7 @@ static int write_emmc_state_internal(uint32_t state_addr, const struct emmc_stat
 		return 1;
 	}
 
-	uint8_t buf[DEVICE_PARAMS_EMMC_BLOCKSIZE];
+	uint8_t buf[CONFIG_DEVICE_PARAMS_EMMC_BLOCKSIZE];
 	if (mmc->blksz > sizeof(buf))
 	{
 		printf("MMC blocksize too big: %u\n", mmc->blksz);

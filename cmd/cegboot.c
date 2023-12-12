@@ -14,10 +14,6 @@
 #include <env.h>
 #include <firmware_blob.h>
 
-// FIXME define in config
-#define LOAD_ADDR 0x10000000
-#define LOAD_BUFFER_SIZE 0x10000000
-
 typedef enum
 {
 	CRITICAL_BOOT_FAILURE_GET_MMC_STATE,
@@ -52,8 +48,8 @@ load_emmc_image(uint32_t addr)
 		return 1;
 	}
 
-	void *buf = (void *)LOAD_ADDR;
-	uint32_t buf_size = LOAD_BUFFER_SIZE;
+	void *buf = (void *)CONFIG_FASTBOOT_BUF_ADDR;
+	uint32_t buf_size = CONFIG_FASTBOOT_BUF_SIZE;
 
 	if (buf_size < dev->blksz)
 	{
@@ -73,7 +69,7 @@ load_emmc_image(uint32_t addr)
 	struct blob_header *blob_header = (struct blob_header *)buf;
 
 	uint32_t blob_size = blob_header->blob_size;
-	if (blob_size > LOAD_BUFFER_SIZE)
+	if (blob_size > CONFIG_FASTBOOT_BUF_SIZE)
 	{
 		printf("Invalid load buffer size\n");
 		return 1;
@@ -83,7 +79,7 @@ load_emmc_image(uint32_t addr)
 	lbaint_t blkcnt = ((blob_size + (dev->blksz - 1)) & ~(dev->blksz - 1));
 	blkcnt = lldiv(blkcnt, dev->blksz);
 
-	if (blkcnt * dev->blksz > LOAD_BUFFER_SIZE)
+	if (blkcnt * dev->blksz > CONFIG_FASTBOOT_BUF_SIZE)
 	{
 		printf("Invalid load buffer size\n");
 		return 1;
@@ -128,7 +124,7 @@ static void boot_loaded_image()
 {
 	env_set("autostart", "1");
 
-	const struct blob_header *blob_header = (struct blob_header *)LOAD_ADDR;
+	const struct blob_header *blob_header = (struct blob_header *)CONFIG_FASTBOOT_BUF_ADDR;
 	uint32_t bitstream_load_addr = (uint32_t)blob_header + sizeof(*blob_header) + blob_header->package_identifier_len;
 	uint32_t elf_load_addr = bitstream_load_addr + blob_header->bitstream_len;
 
@@ -152,7 +148,7 @@ static void boot_loaded_image()
 
 static void init_validate_blob_input(struct validate_blob_input *validate_blob_input, board_partition_t partition)
 {
-	const struct blob_header *blob_header = (const struct blob_header *)LOAD_ADDR;
+	const struct blob_header *blob_header = (const struct blob_header *)CONFIG_FASTBOOT_BUF_ADDR;
 
 	validate_blob_input->blob = blob_header;
 	validate_blob_input->blob_len = blob_header->blob_size;
