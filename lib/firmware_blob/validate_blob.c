@@ -150,7 +150,7 @@ static const struct authorization_record
                     [SW_TYPE_RECOVERY] =
                         {
                             .allow = 1,
-                            .allow_skip_signature_check = 0,
+                            .allow_skip_signature_check = 1,
                             .allow_skip_project_id_check = 0,
                             .board_partition = BOARD_PARTITION_RECOVERY,
                         },
@@ -182,7 +182,7 @@ static const struct authorization_record
                     [SW_TYPE_RECOVERY] =
                         {
                             .allow = 1,
-                            .allow_skip_signature_check = 0,
+                            .allow_skip_signature_check = 1,
                             .allow_skip_project_id_check = 1,
                             .board_partition = BOARD_PARTITION_RECOVERY,
                         },
