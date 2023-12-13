@@ -627,62 +627,56 @@ void fastboot_mmc_flash_write(const char *cmd, void *download_buffer,
  */
 void fastboot_mmc_erase(const char *cmd, char *response)
 {
-	struct blk_desc *dev_desc;
-	struct disk_partition info;
-	lbaint_t blks, blks_start, blks_size, grp_size;
-	struct mmc *mmc = find_mmc_device(CONFIG_FASTBOOT_FLASH_MMC_DEV);
-
-#ifdef CONFIG_FASTBOOT_MMC_BOOT_SUPPORT
-	if (strcmp(cmd, CONFIG_FASTBOOT_MMC_BOOT1_NAME) == 0)
+	if (!cmd)
 	{
-		/* erase EMMC boot1 */
-		dev_desc = fastboot_mmc_get_dev(response);
-		if (dev_desc)
-			fb_mmc_boot_ops(dev_desc, NULL, 1, 0, response);
+		fastboot_fail("Partition name (software/recovery) not specified", response);
 		return;
 	}
-	if (strcmp(cmd, CONFIG_FASTBOOT_MMC_BOOT2_NAME) == 0)
-	{
-		/* erase EMMC boot2 */
-		dev_desc = fastboot_mmc_get_dev(response);
-		if (dev_desc)
-			fb_mmc_boot_ops(dev_desc, NULL, 2, 0, response);
-		return;
-	}
-#endif
 
-#ifdef CONFIG_FASTBOOT_MMC_USER_SUPPORT
-	if (strcmp(cmd, CONFIG_FASTBOOT_MMC_USER_NAME) == 0)
+	uint32_t mmc_dest_addr;
+	uint32_t mmc_partition_size;
+
+	if (strcmp(cmd, "recovery") == 0)
 	{
-		/* erase EMMC userdata */
-		dev_desc = fastboot_mmc_get_dev(response);
-		if (!dev_desc)
+		mmc_dest_addr = device_flash_params.emmc_layout.recovery_addr;
+		mmc_partition_size = device_flash_params.emmc_layout.recovery_size;
+	}
+	else if (strcmp(cmd, "software") == 0)
+	{
+		mmc_dest_addr = device_flash_params.emmc_layout.software_addr;
+		mmc_partition_size = device_flash_params.emmc_layout.software_size;
+
+		struct emmc_state emmc_state = {.sw_state = SW_STATE_EMPTY};
+		if (write_emmc_state(&emmc_state) != 0)
+		{
+			fastboot_fail("write_emmc_state() failed", response);
 			return;
-
-		if (fb_mmc_erase_mmc_hwpart(dev_desc))
-			fastboot_fail("Failed to erase EMMC_USER", response);
-		else
-			fastboot_okay(NULL, response);
+		}
+	}
+	else
+	{
+		fastboot_fail("Invalid partition name (expecting software/recovery)", response);
 		return;
 	}
-#endif
 
-	if (fastboot_mmc_get_part_info(cmd, &dev_desc, &info, response) < 0)
+	struct blk_desc *dev_desc = fastboot_mmc_get_dev(response);
+	if (!dev_desc)
 		return;
 
 	/* Align blocks to erase group size to avoid erasing other partitions */
-	grp_size = mmc->erase_grp_size;
-	blks_start = (info.start + grp_size - 1) & ~(grp_size - 1);
-	if (info.size >= grp_size)
-		blks_size = (info.size - (blks_start - info.start)) &
+	lbaint_t start = mmc_dest_addr / dev_desc->blksz;
+	lbaint_t count = mmc_partition_size / dev_desc->blksz;
+	lbaint_t grp_size = dev_desc->erase_grp_size;
+	lbaint_t blks_start = (start + grp_size - 1) & ~(grp_size - 1);
+	lbaint_t blks_size = 0;
+	if (count >= grp_size)
+		blks_size = (count - (blks_start - start)) &
 					(~(grp_size - 1));
-	else
-		blks_size = 0;
 
 	printf("Erasing blocks " LBAFU " to " LBAFU " due to alignment\n",
 		   blks_start, blks_start + blks_size);
 
-	blks = fb_mmc_blk_write(dev_desc, blks_start, blks_size, NULL);
+	lbaint_t blks = fb_mmc_blk_write(dev_desc, blks_start, blks_size, NULL);
 
 	if (blks != blks_size)
 	{

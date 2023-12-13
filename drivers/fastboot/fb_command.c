@@ -296,12 +296,7 @@ static void flash(char *cmd_parameter, char *response)
  */
 static void erase(char *cmd_parameter, char *response)
 {
-#if CONFIG_IS_ENABLED(FASTBOOT_FLASH_MMC)
 	fastboot_mmc_erase(cmd_parameter, response);
-#endif
-#if CONFIG_IS_ENABLED(FASTBOOT_FLASH_NAND)
-	fastboot_nand_erase(cmd_parameter, response);
-#endif
 }
 
 /**
