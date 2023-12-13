@@ -337,7 +337,7 @@ static int init_device_flash_params()
 		return 1;
 	}
 
-	validate_flash_params(&device_flash_params, 1);
+	validate_flash_params(&device_flash_params, 0);
 
 	return 0;
 }
@@ -647,7 +647,7 @@ int write_modified_flash_params()
 		return 1;
 	}
 
-	if (validate_flash_params(&modified_device_flash_params, 0) != 0)
+	if (validate_flash_params(&modified_device_flash_params, 1) != 0)
 	{
 		printf("Validation of modified flash params failed\n");
 		return 1;
