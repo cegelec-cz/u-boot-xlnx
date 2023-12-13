@@ -134,6 +134,7 @@ static void boot_loaded_image()
 		return;
 	}
 
+	env_set("autostart", "1");
 	if (run_commandf("bootelf %x", elf_load_addr) != 0)
 	{
 		critical_boot_failure(CRITICAL_BOOT_FAILURE_BOOTELF_FAIL);
@@ -183,7 +184,6 @@ static void attempt_recovery_boot()
 
 static void attempt_primary_sw_boot()
 {
-	env_set("autostart", "1");
 	env_set("fastboot.bootstep_primary_sw", "attempting primary sw boot");
 
 	if (load_emmc_image(device_flash_params.emmc_layout.software_addr) != 0)
