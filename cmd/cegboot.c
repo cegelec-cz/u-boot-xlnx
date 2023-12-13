@@ -106,6 +106,7 @@ load_emmc_image(uint32_t addr)
 
 static void start_fastboot()
 {
+	initialize_fb_env_from_loaded_params();
 	while (1) // Attempt to run fastboot indefinitely
 		run_command("fastboot udp", 0);
 }
@@ -123,8 +124,6 @@ static void critical_boot_failure(critical_boot_failure_t failure)
 
 static void boot_loaded_image()
 {
-	env_set("autostart", "1");
-
 	const struct blob_header *blob_header = (struct blob_header *)CONFIG_FASTBOOT_BUF_ADDR;
 	uint32_t bitstream_load_addr = (uint32_t)blob_header + sizeof(*blob_header) + blob_header->package_identifier_len;
 	uint32_t elf_load_addr = bitstream_load_addr + blob_header->bitstream_len;

@@ -25,7 +25,6 @@
 #define FLASH_PARAMS_OFFSET_FROM_END 1048576UL // 1 MiB
 
 // Check overlap of state <-> backup, state <-> software and backup <-> software partitions
-
 #define CHECK_EMMC_OVERLAP(state_start, state_size,                \
 						   backup_start, backup_size,              \
 						   software_start, software_size)          \
@@ -663,4 +662,9 @@ int write_modified_flash_params()
 	device_flash_params = modified_device_flash_params;
 
 	return 0;
+}
+
+void initialize_fb_env_from_loaded_params()
+{
+	set_env_variables_from_params(&device_flash_params, 0);
 }

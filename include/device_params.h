@@ -67,5 +67,6 @@ int write_emmc_state(const struct emmc_state *emmc_state);
 
 int init_from_spi_flash();
 int write_modified_flash_params();
+void initialize_fb_env_from_loaded_params();
 
 #endif // __DEVICE_PARAMS_H
