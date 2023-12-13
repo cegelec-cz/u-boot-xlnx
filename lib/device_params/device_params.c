@@ -473,7 +473,7 @@ int check_emmc_layout(const struct emmc_layout *emmc_layout, const char **feedba
 		feedback_str = err_feedback[DEVPARAMS_ERR_EMMC_LAYOUT_BAD_CRC];
 		ret = 1;
 	}
-	else if (emmc_layout->state_size < sizeof(struct emmc_state))
+	else if (emmc_layout->state_size != mmc->blksz)
 	{
 		feedback_str = err_feedback[DEVPARAMS_ERR_EMMC_LAYOUT_INVALID_STATE_SIZE];
 		ret = 1;
