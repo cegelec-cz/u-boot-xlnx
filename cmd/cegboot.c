@@ -157,7 +157,7 @@ static void init_validate_blob_input(struct validate_blob_input *validate_blob_i
 
 static void attempt_recovery_boot()
 {
-	env_set("fastboot.bootstep_recovery", "booted");
+	env_set("fastboot.bootstep_recovery", "attempting recovery boot");
 
 	if (load_emmc_image(device_flash_params.emmc_layout.recovery_addr) != 0)
 	{
@@ -183,7 +183,8 @@ static void attempt_recovery_boot()
 
 static void attempt_primary_sw_boot()
 {
-	env_set("fastboot.bootstep_primary_sw", "booted");
+	env_set("autostart", "1");
+	env_set("fastboot.bootstep_primary_sw", "attempting primary sw boot");
 
 	if (load_emmc_image(device_flash_params.emmc_layout.software_addr) != 0)
 	{
@@ -220,7 +221,6 @@ static void initialize_diagnostic_env_variables()
 	const char *na = "not attempted";
 	env_set("fastboot.bootstep_primary_sw", na);
 	env_set("fastboot.bootstep_recovery", na);
-	env_set("fastboot.bootstep_fastboot", na);
 	env_set("fastboot.critical_bootfail", "critical boot failure not present");
 }
 
