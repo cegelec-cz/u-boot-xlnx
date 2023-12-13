@@ -15,6 +15,9 @@
 #include <device_params.h>
 #include <vsprintf.h>
 
+// FIXME
+#define CONFIG_FASTBOOT_FLASH_MMC_DEV 0
+
 /**
  * image_size - final fastboot image size
  */
