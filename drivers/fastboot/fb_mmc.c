@@ -659,6 +659,13 @@ void fastboot_mmc_erase(const char *cmd, char *response)
 		return;
 	}
 
+	struct mmc *mmc = find_mmc_device(CONFIG_DEVICE_PARAMS_MMC_DEV);
+	if (!mmc)
+	{
+		fastboot_fail("find_mmc_device() call failed", response);
+		return;
+	}
+
 	struct blk_desc *dev_desc = fastboot_mmc_get_dev(response);
 	if (!dev_desc)
 		return;
@@ -666,7 +673,7 @@ void fastboot_mmc_erase(const char *cmd, char *response)
 	/* Align blocks to erase group size to avoid erasing other partitions */
 	lbaint_t start = mmc_dest_addr / dev_desc->blksz;
 	lbaint_t count = mmc_partition_size / dev_desc->blksz;
-	lbaint_t grp_size = dev_desc->erase_grp_size;
+	lbaint_t grp_size = mmc->erase_grp_size;
 	lbaint_t blks_start = (start + grp_size - 1) & ~(grp_size - 1);
 	lbaint_t blks_size = 0;
 	if (count >= grp_size)
@@ -686,6 +693,6 @@ void fastboot_mmc_erase(const char *cmd, char *response)
 	}
 
 	printf("........ erased " LBAFU " bytes from '%s'\n",
-		   blks_size * info.blksz, cmd);
+		   blks_size * dev_desc->blksz, cmd);
 	fastboot_okay(NULL, response);
 }
