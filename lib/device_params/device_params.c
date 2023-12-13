@@ -479,7 +479,7 @@ int check_emmc_layout(const struct emmc_layout *emmc_layout, const char **feedba
 		feedback_str = err_feedback[DEVPARAMS_ERR_EMMC_LAYOUT_INVALID_STATE_SIZE];
 		ret = 1;
 	}
-	else if (emmc_layout->backup_size < CONFIG_MAX_SW_BLOB_SIZE)
+	else if (emmc_layout->recovery_size < CONFIG_MAX_SW_BLOB_SIZE)
 	{
 		feedback_str = err_feedback[DEVPARAMS_ERR_EMMC_LAYOUT_INVALID_BACKUP_SIZE];
 		ret = 1;
