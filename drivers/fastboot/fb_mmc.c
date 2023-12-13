@@ -23,9 +23,6 @@
 #include <boot_policy.h>
 #include <validate_blob.h>
 
-// FIXME
-#define CONFIG_FASTBOOT_FLASH_MMC_DEV 0
-
 #define FASTBOOT_MAX_BLK_WRITE 16384
 
 #define BOOT_PARTITION_NAME "boot"
@@ -474,6 +471,7 @@ static int fb_mmc_update_zimage(struct blk_desc *dev_desc,
 }
 #endif
 
+#ifdef CONFIG_FASTBOOT_FLASH_MMC
 /**
  * fastboot_mmc_get_part_info() - Lookup eMMC partion by name
  *
@@ -521,10 +519,12 @@ int fastboot_mmc_get_part_info(const char *part_name,
 	return ret;
 }
 
+#endif
+
 static struct blk_desc *fastboot_mmc_get_dev(char *response)
 {
 	struct blk_desc *ret = blk_get_dev("mmc",
-									   CONFIG_FASTBOOT_FLASH_MMC_DEV);
+									   CONFIG_DEVICE_PARAMS_MMC_DEV);
 
 	if (!ret || ret->type == DEV_TYPE_UNKNOWN)
 	{
@@ -587,11 +587,18 @@ void fastboot_mmc_flash_write(const char *cmd, void *download_buffer,
 	uint32_t mmc_partition_size;
 	if (is_recovery_flash)
 	{
-		mmc_dest_addr = device_flash_params.emmc_layout.backup_addr;
-		mmc_partition_size = device_flash_params.emmc_layout.backup_size;
+		mmc_dest_addr = device_flash_params.emmc_layout.recovery_addr;
+		mmc_partition_size = device_flash_params.emmc_layout.recovery_size;
 	}
 	else
 	{
+		struct emmc_state emmc_state = {.sw_state = SW_STATE_UPDATED};
+		if (write_emmc_state(&emmc_state) != 0)
+		{
+			fastboot_fail("write_emmc_state() failed", response);
+			return;
+		}
+
 		mmc_dest_addr = device_flash_params.emmc_layout.software_addr;
 		mmc_partition_size = device_flash_params.emmc_layout.software_size;
 	}

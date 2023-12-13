@@ -27,8 +27,8 @@ struct emmc_layout
 {
     uint32_t state_addr;
     uint32_t state_size;
-    uint32_t backup_addr;
-    uint32_t backup_size;
+    uint32_t recovery_addr;
+    uint32_t recovery_size;
     uint32_t software_addr;
     uint32_t software_size;
     uint32_t crc;

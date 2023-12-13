@@ -545,8 +545,8 @@ static void set_emmc_layout(char *cmd_parameter, char *response)
 	uint32_t *const write[] = {
 		&emmc_layout.state_addr,
 		&emmc_layout.state_size,
-		&emmc_layout.backup_addr,
-		&emmc_layout.backup_size,
+		&emmc_layout.recovery_addr,
+		&emmc_layout.recovery_size,
 		&emmc_layout.software_addr,
 		&emmc_layout.software_size};
 	const size_t count = sizeof(write) / sizeof(write[0]);

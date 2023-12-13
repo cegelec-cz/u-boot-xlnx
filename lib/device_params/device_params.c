@@ -25,16 +25,26 @@
 #define FLASH_PARAMS_OFFSET_FROM_END 1048576UL // 1 MiB
 
 // Check overlap of state <-> backup, state <-> software and backup <-> software partitions
-#define CHECK_EMMC_OVERLAP(state_start, state_size,               \
-						   backup_start, backup_size,             \
-						   software_start, software_size)         \
-	(                                                             \
-		((state_start) < ((backup_start) + (backup_size)) &&      \
-		 (backup_start) < ((state_start) + (state_size))) ||      \
-		((state_start) < ((software_start) + (software_size)) &&  \
-		 (software_start) < ((state_start) + (state_size))) ||    \
-		((backup_start) < ((software_start) + (software_size)) && \
-		 (software_start) < ((backup_start) + (backup_size))))
+
+#define CHECK_EMMC_OVERLAP(state_start, state_size,                \
+						   backup_start, backup_size,              \
+						   software_start, software_size)          \
+	(                                                              \
+		((state_start) >= ((backup_start) + (backup_size)) ||      \
+		 (backup_start) >= ((state_start) + (state_size))) &&      \
+		((state_start) >= ((software_start) + (software_size)) ||  \
+		 (software_start) >= ((state_start) + (state_size))) &&    \
+		((backup_start) >= ((software_start) + (software_size)) || \
+		 (software_start) >= ((backup_start) + (backup_size))))
+
+// Check alignment of state, backup and software partitions
+#define CHECK_EMMC_ALIGNMENT(blocksize, state_start, state_size,                     \
+							 backup_start, backup_size,                              \
+							 software_start, software_size)                          \
+	(                                                                                \
+		((state_start) % (blocksize) == 0) && ((state_size) % (blocksize) == 0) &&   \
+		((backup_start) % (blocksize) == 0) && ((backup_size) % (blocksize) == 0) && \
+		((software_start) % (blocksize) == 0) && ((software_size) % (blocksize) == 0))
 
 typedef enum
 {
@@ -48,6 +58,8 @@ typedef enum
 	DEVPARAMS_ERR_EMMC_LAYOUT_INVALID_BACKUP_SIZE,
 	DEVPARAMS_ERR_EMMC_LAYOUT_INVALID_SW_SIZE,
 	DEVPARAMS_ERR_EMMC_LAYOUT_OVERLAP,
+	DEVPARAMS_ERR_EMMC_LAYOUT_ALIGNMENT,
+	DEVPARAMS_ERR_INTERNAL,
 	DEVPARAMS_ERR_COUNT
 } device_params_err_t;
 
@@ -62,6 +74,8 @@ static const char *err_feedback[DEVPARAMS_ERR_COUNT] = {
 	[DEVPARAMS_ERR_EMMC_LAYOUT_INVALID_BACKUP_SIZE] = "emmc layout: invalid backup partition size",
 	[DEVPARAMS_ERR_EMMC_LAYOUT_INVALID_SW_SIZE] = "emmc layout: invalid software partition size",
 	[DEVPARAMS_ERR_EMMC_LAYOUT_OVERLAP] = "emmc layout: partitions overlap emmc_state or each other",
+	[DEVPARAMS_ERR_EMMC_LAYOUT_ALIGNMENT] = "emmc layout: starting addresses or partition sizes are not aligned to eMMC blocksize",
+	[DEVPARAMS_ERR_INTERNAL] = "internal error occured when validating device parameters",
 };
 
 static struct
@@ -87,8 +101,8 @@ CASSERT(sizeof(struct flash_params) < FLASH_PARAMS_OFFSET_FROM_END);
 static const struct emmc_layout default_emmc_layout = {
 	.state_addr = CONFIG_DEFAULT_EMMC_STATE_ADDR,
 	.state_size = CONFIG_DEVICE_PARAMS_EMMC_BLOCKSIZE,
-	.backup_addr = CONFIG_DEFAULT_EMMC_BACKUP_ADDR,
-	.backup_size = CONFIG_DEFAULT_EMMC_BACKUP_SIZE,
+	.recovery_addr = CONFIG_DEFAULT_EMMC_BACKUP_ADDR,
+	.recovery_size = CONFIG_DEFAULT_EMMC_BACKUP_SIZE,
 	.software_addr = CONFIG_DEFAULT_EMMC_SOFTWARE_ADDR,
 	.software_size = CONFIG_DEFAULT_EMMC_SOFTWARE_SIZE,
 	.crc = 0,
@@ -98,162 +112,38 @@ CASSERT(
 	CONFIG_DEVICE_PARAMS_EMMC_BLOCKSIZE >= sizeof(struct emmc_state) &&
 	CONFIG_DEFAULT_EMMC_BACKUP_SIZE >= CONFIG_MAX_SW_BLOB_SIZE &&
 	CONFIG_DEFAULT_EMMC_SOFTWARE_SIZE >= CONFIG_MAX_SW_BLOB_SIZE &&
-	!CHECK_EMMC_OVERLAP(CONFIG_DEFAULT_EMMC_STATE_ADDR,
-						CONFIG_DEVICE_PARAMS_EMMC_BLOCKSIZE,
-						CONFIG_DEFAULT_EMMC_BACKUP_ADDR,
-						CONFIG_DEFAULT_EMMC_BACKUP_SIZE,
-						CONFIG_DEFAULT_EMMC_SOFTWARE_ADDR,
-						CONFIG_DEFAULT_EMMC_SOFTWARE_SIZE));
+	CHECK_EMMC_OVERLAP(CONFIG_DEFAULT_EMMC_STATE_ADDR,
+					   CONFIG_DEVICE_PARAMS_EMMC_BLOCKSIZE,
+					   CONFIG_DEFAULT_EMMC_BACKUP_ADDR,
+					   CONFIG_DEFAULT_EMMC_BACKUP_SIZE,
+					   CONFIG_DEFAULT_EMMC_SOFTWARE_ADDR,
+					   CONFIG_DEFAULT_EMMC_SOFTWARE_SIZE) &&
+	CHECK_EMMC_ALIGNMENT(CONFIG_DEVICE_PARAMS_EMMC_BLOCKSIZE,
+						 CONFIG_DEFAULT_EMMC_STATE_ADDR,
+						 CONFIG_DEVICE_PARAMS_EMMC_BLOCKSIZE,
+						 CONFIG_DEFAULT_EMMC_BACKUP_ADDR,
+						 CONFIG_DEFAULT_EMMC_BACKUP_SIZE,
+						 CONFIG_DEFAULT_EMMC_SOFTWARE_ADDR,
+						 CONFIG_DEFAULT_EMMC_SOFTWARE_SIZE));
+
+// Forward-declarations of static functions
+static void write_default_ethernet_settings(struct ethernet_settings *ethernet_settings);
+static void write_default_emmc_layout(struct emmc_layout *emmc_layout);
+static void apply_ethernet_settings(const struct ethernet_settings *ethernet_settings);
+static int write_params_to_flash(struct spi_nor *flash, uint32_t flash_params_offset,
+								 const struct flash_params *flash_params);
+static int get_flash_params_offset(const struct spi_nor *flash);
+static struct spi_nor *probe_flash();
+static int validate_flash_params(struct flash_params *flash_params, int validate_modified);
+static void set_fb_env_var(const char *prefix, const char *name, const char *fmt_val, ...)
+	__attribute__((format(__printf__, 3, 4)));
+static void set_env_variables_from_params(const struct flash_params *params, int modified_params);
+static int init_device_flash_params();
+static int get_emmc_state_internal(uint32_t state_addr, struct emmc_state *emmc_state);
+static int write_emmc_state_internal(uint32_t state_addr, const struct emmc_state *emmc_state);
 
 struct flash_params device_flash_params;
 struct flash_params modified_device_flash_params;
-
-uint32_t compute_ethernet_settings_crc(const struct ethernet_settings *ethernet_settings)
-{
-	return crc32(0, (const uint8_t *)ethernet_settings,
-				 sizeof(*ethernet_settings) - sizeof(ethernet_settings->crc));
-}
-
-uint32_t compute_emmc_layout_crc(const struct emmc_layout *emmc_layout)
-{
-	return crc32(0, (const uint8_t *)emmc_layout,
-				 sizeof(*emmc_layout) - sizeof(emmc_layout->crc));
-}
-
-int check_ethernet_settings(const struct ethernet_settings *ethernet_settings, const char **feedback)
-{
-	int ret = 0;
-	const char *feedback_str = NULL;
-
-	if (ethernet_settings->crc != compute_ethernet_settings_crc(ethernet_settings))
-	{
-		feedback_str = err_feedback[DEVPARAMS_ERR_ETH_SETTINGS_BAD_CRC];
-		ret = 1;
-	}
-	else if (!is_valid_ethaddr(ethernet_settings->mac_address))
-	{
-		feedback_str = err_feedback[DEVPARAMS_ERR_ETH_SETTINGS_INVALID_MAC];
-		ret = 1;
-	}
-	else if (ethernet_settings->ip_address.s_addr == 0 ||
-			 ethernet_settings->ip_address.s_addr == MAX_UINT32)
-	{
-		feedback_str = err_feedback[DEVPARAMS_ERR_ETH_SETTINGS_INVALID_IPADDR];
-		ret = 1;
-	}
-	else if (ethernet_settings->netmask.s_addr == 0 ||
-			 ethernet_settings->netmask.s_addr == MAX_UINT32)
-	{
-		feedback_str = err_feedback[DEVPARAMS_ERR_ETH_SETTINGS_INVALID_NETMASK];
-		ret = 1;
-	}
-
-	if (feedback_str)
-	{
-		printf("%s\n", feedback_str);
-		if (feedback)
-			*feedback = feedback_str;
-	}
-
-	return ret;
-}
-
-int check_emmc_layout(const struct emmc_layout *emmc_layout, const char **feedback)
-{
-	int ret = 0;
-	const char *feedback_str = NULL;
-
-	if (emmc_layout->crc != compute_emmc_layout_crc(emmc_layout))
-	{
-		feedback_str = err_feedback[DEVPARAMS_ERR_EMMC_LAYOUT_BAD_CRC];
-		ret = 1;
-	}
-	else if (emmc_layout->state_size < sizeof(struct emmc_state))
-	{
-		feedback_str = err_feedback[DEVPARAMS_ERR_EMMC_LAYOUT_INVALID_STATE_SIZE];
-		ret = 1;
-	}
-	else if (emmc_layout->backup_size < CONFIG_MAX_SW_BLOB_SIZE)
-	{
-		feedback_str = err_feedback[DEVPARAMS_ERR_EMMC_LAYOUT_INVALID_BACKUP_SIZE];
-		ret = 1;
-	}
-	else if (emmc_layout->software_size < CONFIG_MAX_SW_BLOB_SIZE)
-	{
-		feedback_str = err_feedback[DEVPARAMS_ERR_EMMC_LAYOUT_INVALID_SW_SIZE];
-		ret = 1;
-	}
-	else if (CHECK_EMMC_OVERLAP(
-				 emmc_layout->state_addr,
-				 emmc_layout->state_size,
-				 emmc_layout->backup_addr,
-				 emmc_layout->backup_size,
-				 emmc_layout->software_addr,
-				 emmc_layout->software_size))
-	{
-		feedback_str = err_feedback[DEVPARAMS_ERR_EMMC_LAYOUT_OVERLAP];
-		ret = 1;
-	}
-
-	if (feedback_str)
-	{
-		printf("%s\n", feedback_str);
-		if (feedback)
-			*feedback = feedback_str;
-	}
-
-	return ret;
-}
-
-int check_serial_number(const char buf[sizeof(((struct flash_params *)0)->serial_number)])
-{
-	// Serial number must be made up of printable characters and null-terminated
-	for (int i = 0; i < sizeof(((struct flash_params *)0)->serial_number); ++i)
-	{
-		if (buf[i] == 0)
-			return 0;
-		if (buf[i] < 0x20 || buf[i] > 0x7e)
-			return 1;
-	}
-
-	return 1;
-}
-
-int get_boot_policy(const char *identifier)
-{
-	for (int i = 0; i < BOARD_BOOT_POLICY_COUNT; ++i)
-	{
-		if (strcmp(identifier, boot_policy_attributes[i].identifier) == 0)
-			return i;
-	}
-
-	return -1;
-}
-
-void print_boot_policy_help(char *buf, size_t size)
-{
-	int cap = size;
-	int count = snprintf(buf, cap, "Supported boot policies: ");
-	cap -= count;
-	buf += count;
-	if (cap <= 0)
-		return;
-
-	for (int i = 0; i < BOARD_BOOT_POLICY_COUNT; ++i)
-	{
-		const char *fmt = i == BOARD_BOOT_POLICY_COUNT - 1 ? "%s" : "%s, ";
-		count = snprintf(buf, cap, fmt, boot_policy_attributes[i].identifier);
-		cap -= count;
-		buf += count;
-		if (cap <= 0)
-			return;
-	}
-}
-
-const char *get_boot_policy_name(board_boot_policy_t policy)
-{
-	return boot_policy_attributes[policy].identifier;
-}
 
 static void write_default_ethernet_settings(struct ethernet_settings *ethernet_settings)
 {
@@ -337,66 +227,98 @@ static struct spi_nor *probe_flash()
 	return flash;
 }
 
-static int validate_flash_params(struct flash_params *flash_params, int set_defaults)
+static int validate_flash_params(struct flash_params *flash_params, int validate_modified)
 {
 	int ret = 0;
 
-	// Guarantee printability and null-termination of serial # in case of corrupt flash data
+	const char *prefix = validate_modified ? "fastboot.validate_err_modified_" : "fastboot.validate_err_loaded_";
+	const char *feedback = NULL;
+
 	if (check_serial_number(flash_params->serial_number) != 0)
 	{
-		ret = 1;
-		if (!set_defaults)
-			return ret;
+		set_fb_env_var(prefix, "serial_number", "invalid");
 
-		printf("Invalid device serial number detected, clearing serial number\n");
-		memset(flash_params->serial_number, 0, sizeof(flash_params->serial_number));
+		ret = 1;
+		if (!validate_modified)
+			memset(flash_params->serial_number, 0, sizeof(flash_params->serial_number));
 	}
 
-	if (check_ethernet_settings(&flash_params->ethernet_settings, NULL) != 0)
+	if (check_ethernet_settings(&flash_params->ethernet_settings, &feedback) != 0)
 	{
-		ret = 1;
-		if (!set_defaults)
-			return ret;
+		if (!feedback)
+			feedback = "invalid";
+		set_fb_env_var(prefix, "eth_settings", feedback);
 
-		printf("Invalid ethernet settings detected, writing default settings\n");
-		write_default_ethernet_settings(&flash_params->ethernet_settings);
+		ret = 1;
+		if (!validate_modified)
+			write_default_ethernet_settings(&flash_params->ethernet_settings);
 	}
 
-	if (check_emmc_layout(&flash_params->emmc_layout, NULL) != 0)
+	if (check_emmc_layout(&flash_params->emmc_layout, &feedback) != 0)
 	{
-		ret = 1;
-		if (!set_defaults)
-			return ret;
+		if (!feedback)
+			feedback = "invalid";
+		set_fb_env_var(prefix, "emmc_layout", feedback);
 
-		printf("Invalid EMMC layout detected, writing default settings\n");
-		write_default_emmc_layout(&flash_params->emmc_layout);
+		ret = 1;
+		if (!validate_modified)
+			write_default_emmc_layout(&flash_params->emmc_layout);
 	}
 
 	if (flash_params->board_boot_policy >= BOARD_BOOT_POLICY_COUNT)
 	{
-		ret = 1;
-		if (!set_defaults)
-			return ret;
+		set_fb_env_var(prefix, "board_boot_policy", "invalid");
 
-		printf("Invalid board boot policy detected, clearing board boot policy and project ID\n");
-		flash_params->board_boot_policy = BOARD_BOOT_POLICY_NOT_SET;
-		flash_params->project_id = 0;
+		ret = 1;
+		if (!validate_modified)
+		{
+			flash_params->board_boot_policy = BOARD_BOOT_POLICY_NOT_SET;
+			flash_params->project_id = 0;
+		}
 	}
 
 	return ret;
 }
 
-struct blk_desc *mmc_get_device_params_dev()
+static void set_fb_env_var(const char *prefix, const char *name, const char *fmt_val, ...)
 {
-	struct blk_desc *ret = blk_get_dev("mmc",
-									   CONFIG_DEVICE_PARAMS_MMC_DEV);
+	prefix = (prefix == NULL) ? "fastboot." : prefix;
 
-	if (!ret || ret->type == DEV_TYPE_UNKNOWN)
-	{
-		printf("Invalid MMC device\n");
-		return NULL;
-	}
-	return ret;
+	char name_buf[128];
+	char value_buf[128];
+
+	snprintf(name_buf, sizeof(name_buf), "%s%s", prefix, name);
+
+	va_list args;
+	va_start(args, fmt_val);
+	vsnprintf(value_buf, sizeof(value_buf), fmt_val, args);
+	va_end(args);
+
+	env_set(name_buf, value_buf);
+}
+
+static void set_env_variables_from_params(const struct flash_params *params, int modified_params)
+{
+	const char *prefix = modified_params ? "fastboot.modified_" : "fastboot.";
+
+	set_fb_env_var(prefix, "board_boot_policy", "%s (%s)",
+				   boot_policy_attributes[params->board_boot_policy].identifier,
+				   boot_policy_attributes[params->board_boot_policy].description);
+	set_fb_env_var(prefix, "project_id", "%#010x", params->project_id);
+	set_fb_env_var(prefix, "serial_number", params->serial_number);
+
+	set_fb_env_var(prefix, "mac_addr", "%pM", params->ethernet_settings.mac_address);
+	char buf[MAC_IP_ADDR_STR_LEN];
+	ip_to_string(params->ethernet_settings.ip_address, buf);
+	set_fb_env_var(prefix, "ip_addr", buf);
+	ip_to_string(params->ethernet_settings.netmask, buf);
+	set_fb_env_var(prefix, "netmask", buf);
+
+	set_fb_env_var(prefix, "emmc_state_addr", "%#010x", params->emmc_layout.state_addr);
+	set_fb_env_var(prefix, "emmc_recovery_addr", "%#010x", params->emmc_layout.recovery_addr);
+	set_fb_env_var(prefix, "emmc_recovery_size", "%#010x", params->emmc_layout.recovery_size);
+	set_fb_env_var(prefix, "emmc_software_addr", "%#010x", params->emmc_layout.software_addr);
+	set_fb_env_var(prefix, "emmc_software_size", "%#010x", params->emmc_layout.software_size);
 }
 
 static int init_device_flash_params()
@@ -415,13 +337,7 @@ static int init_device_flash_params()
 		return 1;
 	}
 
-	int write_flash = validate_flash_params(&device_flash_params, 1) != 0;
-	if (write_flash &&
-		write_params_to_flash(flash, param_offset, &device_flash_params) != 0)
-	{
-		printf("Writeback of flash_params to flash addr %u failed\n", param_offset);
-		return 1;
-	}
+	validate_flash_params(&device_flash_params, 1);
 
 	return 0;
 }
@@ -492,6 +408,184 @@ static int write_emmc_state_internal(uint32_t state_addr, const struct emmc_stat
 	return 0;
 }
 
+uint32_t compute_ethernet_settings_crc(const struct ethernet_settings *ethernet_settings)
+{
+	return crc32(0, (const uint8_t *)ethernet_settings,
+				 sizeof(*ethernet_settings) - sizeof(ethernet_settings->crc));
+}
+
+uint32_t compute_emmc_layout_crc(const struct emmc_layout *emmc_layout)
+{
+	return crc32(0, (const uint8_t *)emmc_layout,
+				 sizeof(*emmc_layout) - sizeof(emmc_layout->crc));
+}
+
+int check_ethernet_settings(const struct ethernet_settings *ethernet_settings, const char **feedback)
+{
+	int ret = 0;
+	const char *feedback_str = NULL;
+
+	if (ethernet_settings->crc != compute_ethernet_settings_crc(ethernet_settings))
+	{
+		feedback_str = err_feedback[DEVPARAMS_ERR_ETH_SETTINGS_BAD_CRC];
+		ret = 1;
+	}
+	else if (!is_valid_ethaddr(ethernet_settings->mac_address))
+	{
+		feedback_str = err_feedback[DEVPARAMS_ERR_ETH_SETTINGS_INVALID_MAC];
+		ret = 1;
+	}
+	else if (ethernet_settings->ip_address.s_addr == 0 ||
+			 ethernet_settings->ip_address.s_addr == MAX_UINT32)
+	{
+		feedback_str = err_feedback[DEVPARAMS_ERR_ETH_SETTINGS_INVALID_IPADDR];
+		ret = 1;
+	}
+	else if (ethernet_settings->netmask.s_addr == 0 ||
+			 ethernet_settings->netmask.s_addr == MAX_UINT32)
+	{
+		feedback_str = err_feedback[DEVPARAMS_ERR_ETH_SETTINGS_INVALID_NETMASK];
+		ret = 1;
+	}
+
+	if (feedback_str)
+	{
+		printf("%s\n", feedback_str);
+		if (feedback)
+			*feedback = feedback_str;
+	}
+
+	return ret;
+}
+
+int check_emmc_layout(const struct emmc_layout *emmc_layout, const char **feedback)
+{
+	int ret = 0;
+	const char *feedback_str = NULL;
+
+	struct blk_desc *mmc = mmc_get_device_params_dev();
+	if (!mmc)
+	{
+		feedback_str = err_feedback[DEVPARAMS_ERR_INTERNAL];
+		ret = 1;
+	}
+	else if (emmc_layout->crc != compute_emmc_layout_crc(emmc_layout))
+	{
+		feedback_str = err_feedback[DEVPARAMS_ERR_EMMC_LAYOUT_BAD_CRC];
+		ret = 1;
+	}
+	else if (emmc_layout->state_size < sizeof(struct emmc_state))
+	{
+		feedback_str = err_feedback[DEVPARAMS_ERR_EMMC_LAYOUT_INVALID_STATE_SIZE];
+		ret = 1;
+	}
+	else if (emmc_layout->backup_size < CONFIG_MAX_SW_BLOB_SIZE)
+	{
+		feedback_str = err_feedback[DEVPARAMS_ERR_EMMC_LAYOUT_INVALID_BACKUP_SIZE];
+		ret = 1;
+	}
+	else if (emmc_layout->software_size < CONFIG_MAX_SW_BLOB_SIZE)
+	{
+		feedback_str = err_feedback[DEVPARAMS_ERR_EMMC_LAYOUT_INVALID_SW_SIZE];
+		ret = 1;
+	}
+	else if (!CHECK_EMMC_OVERLAP(
+				 emmc_layout->state_addr,
+				 emmc_layout->state_size,
+				 emmc_layout->recovery_addr,
+				 emmc_layout->recovery_size,
+				 emmc_layout->software_addr,
+				 emmc_layout->software_size))
+	{
+		feedback_str = err_feedback[DEVPARAMS_ERR_EMMC_LAYOUT_OVERLAP];
+		ret = 1;
+	}
+	else if (!CHECK_EMMC_ALIGNMENT(
+				 mmc->blksz,
+				 emmc_layout->state_addr,
+				 emmc_layout->state_size,
+				 emmc_layout->recovery_addr,
+				 emmc_layout->recovery_size,
+				 emmc_layout->software_addr,
+				 emmc_layout->software_size))
+	{
+		feedback_str = err_feedback[DEVPARAMS_ERR_EMMC_LAYOUT_ALIGNMENT];
+		ret = 1;
+	}
+
+	if (feedback_str)
+	{
+		printf("%s\n", feedback_str);
+		if (feedback)
+			*feedback = feedback_str;
+	}
+
+	return ret;
+}
+
+int check_serial_number(const char buf[sizeof(((struct flash_params *)0)->serial_number)])
+{
+	// Serial number must be made up of printable characters and null-terminated
+	for (int i = 0; i < sizeof(((struct flash_params *)0)->serial_number); ++i)
+	{
+		if (buf[i] == 0)
+			return 0;
+		if (buf[i] < 0x20 || buf[i] > 0x7e)
+			return 1;
+	}
+
+	return 1;
+}
+
+int get_boot_policy(const char *identifier)
+{
+	for (int i = 0; i < BOARD_BOOT_POLICY_COUNT; ++i)
+	{
+		if (strcmp(identifier, boot_policy_attributes[i].identifier) == 0)
+			return i;
+	}
+
+	return -1;
+}
+
+void print_boot_policy_help(char *buf, size_t size)
+{
+	int cap = size;
+	int count = snprintf(buf, cap, "Supported boot policies: ");
+	cap -= count;
+	buf += count;
+	if (cap <= 0)
+		return;
+
+	for (int i = 0; i < BOARD_BOOT_POLICY_COUNT; ++i)
+	{
+		const char *fmt = i == BOARD_BOOT_POLICY_COUNT - 1 ? "%s" : "%s, ";
+		count = snprintf(buf, cap, fmt, boot_policy_attributes[i].identifier);
+		cap -= count;
+		buf += count;
+		if (cap <= 0)
+			return;
+	}
+}
+
+const char *get_boot_policy_name(board_boot_policy_t policy)
+{
+	return boot_policy_attributes[policy].identifier;
+}
+
+struct blk_desc *mmc_get_device_params_dev()
+{
+	struct blk_desc *ret = blk_get_dev("mmc",
+									   CONFIG_DEVICE_PARAMS_MMC_DEV);
+
+	if (!ret || ret->type == DEV_TYPE_UNKNOWN)
+	{
+		printf("Invalid MMC device\n");
+		return NULL;
+	}
+	return ret;
+}
+
 int get_emmc_state(struct emmc_state *emmc_state)
 {
 	return get_emmc_state_internal(device_flash_params.emmc_layout.state_addr, emmc_state);
@@ -505,7 +599,10 @@ int write_emmc_state(const struct emmc_state *emmc_state)
 int init_from_spi_flash()
 {
 	if (init_device_flash_params() != 0)
+	{
+		panic("initialization of flash memory device parameters failed");
 		return 1;
+	}
 
 	apply_ethernet_settings(&device_flash_params.ethernet_settings);
 
@@ -536,7 +633,7 @@ int init_from_spi_flash()
 		   "\t\tSoftware size: %#010x\n\n",
 		   device_flash_params.board_boot_policy, boot_policy_desc, device_flash_params.project_id, device_flash_params.serial_number,
 		   mac_str, ip_str, netmask_str, device_flash_params.emmc_layout.state_addr,
-		   device_flash_params.emmc_layout.backup_addr, device_flash_params.emmc_layout.backup_size,
+		   device_flash_params.emmc_layout.recovery_addr, device_flash_params.emmc_layout.recovery_size,
 		   device_flash_params.emmc_layout.software_addr, device_flash_params.emmc_layout.software_size);
 
 	return 0;

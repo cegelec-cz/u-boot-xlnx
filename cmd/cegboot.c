@@ -129,8 +129,6 @@ static void boot_loaded_image()
 	uint32_t bitstream_load_addr = (uint32_t)blob_header + sizeof(*blob_header) + blob_header->package_identifier_len;
 	uint32_t elf_load_addr = bitstream_load_addr + blob_header->bitstream_len;
 
-	// FIXME remove
-	printf("fpga loadb 0 %x %x\n", bitstream_load_addr, blob_header->bitstream_len);
 	if (run_commandf("fpga loadb 0 %x %x", bitstream_load_addr, blob_header->bitstream_len) != 0)
 	{
 		critical_boot_failure(CRITICAL_BOOT_FAILURE_FPGA_LOAD_FAIL);
@@ -162,7 +160,7 @@ static void attempt_recovery_boot()
 {
 	env_set("fastboot.bootstep_recovery", "booted");
 
-	if (load_emmc_image(device_flash_params.emmc_layout.backup_addr) != 0)
+	if (load_emmc_image(device_flash_params.emmc_layout.recovery_addr) != 0)
 	{
 		env_set("fastboot.bootstep_recovery", "loading of recovery image from eMMC failed");
 		start_fastboot();
