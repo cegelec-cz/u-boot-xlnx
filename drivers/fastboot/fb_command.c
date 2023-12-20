@@ -56,21 +56,72 @@ static const struct
 } commands[FASTBOOT_COMMAND_COUNT] = {
 	[FASTBOOT_COMMAND_GETVAR] = {
 		.command = "getvar",
-		.dispatch = getvar},
-	[FASTBOOT_COMMAND_DOWNLOAD] = {.command = "download", .dispatch = download},
-	[FASTBOOT_COMMAND_FLASH] = {.command = "flash", .dispatch = flash},
-	[FASTBOOT_COMMAND_ERASE] = {.command = "erase", .dispatch = erase},
-	[FASTBOOT_COMMAND_BOOT] = {.command = "boot", .dispatch = okay},
-	[FASTBOOT_COMMAND_REBOOT] = {.command = "reboot", .dispatch = okay},
-	[FASTBOOT_COMMAND_OEM_UNLOCK] = {.command = "oem unlock", .dispatch = unlock},
-	[FASTBOOT_COMMAND_OEM_COMMIT] = {.command = "oem commit", .dispatch = commit, .privileged = 1},
-	[FASTBOOT_COMMAND_OEM_SET_MAC_ADDR] = {.command = "oem set_mac_addr", .dispatch = set_mac_addr, .privileged = 1},
-	[FASTBOOT_COMMAND_OEM_SET_IP_ADDR] = {.command = "oem set_ip_addr", .dispatch = set_ip_addr, .privileged = 1},
-	[FASTBOOT_COMMAND_OEM_SET_NETMASK] = {.command = "oem set_netmask", .dispatch = set_netmask, .privileged = 1},
-	[FASTBOOT_COMMAND_OEM_SET_SERIAL_NUMBER] = {.command = "oem set_serial_number", .dispatch = set_serial_number, .privileged = 1},
-	[FASTBOOT_COMMAND_OEM_SET_PROJECT_ID] = {.command = "oem set_project_id", .dispatch = set_project_id, .privileged = 1},
-	[FASTBOOT_COMMAND_OEM_SET_BOARD_BOOT_POLICY] = {.command = "oem set_board_boot_policy", .dispatch = set_board_boot_policy, .privileged = 1},
-	[FASTBOOT_COMMAND_OEM_SET_EMMC_LAYOUT] = {.command = "oem set_emmc_layout", .dispatch = set_emmc_layout, .privileged = 1},
+		.dispatch = getvar
+	},
+	[FASTBOOT_COMMAND_DOWNLOAD] = {
+		.command = "download",
+		.dispatch = download
+	},
+	[FASTBOOT_COMMAND_FLASH] = {
+		.command = "flash",
+		.dispatch = flash
+	},
+	[FASTBOOT_COMMAND_ERASE] = {
+		.command = "erase",
+		.dispatch = erase
+	},
+	[FASTBOOT_COMMAND_BOOT] = {
+		.command = "boot",
+		.dispatch = okay
+	},
+	[FASTBOOT_COMMAND_REBOOT] = {
+		.command = "reboot",
+		.dispatch = okay
+	},
+	[FASTBOOT_COMMAND_OEM_UNLOCK] = {
+		.command = "oem unlock",
+		.dispatch = unlock
+	},
+	[FASTBOOT_COMMAND_OEM_COMMIT] = {
+		.command = "oem commit",
+		.dispatch = commit,
+		.privileged = 1
+	},
+	[FASTBOOT_COMMAND_OEM_SET_MAC_ADDR] = {
+		.command = "oem set_mac_addr",
+		.dispatch = set_mac_addr,
+		.privileged = 1
+	},
+	[FASTBOOT_COMMAND_OEM_SET_IP_ADDR] = {
+		.command = "oem set_ip_addr",
+		.dispatch = set_ip_addr,
+		.privileged = 1
+	},
+	[FASTBOOT_COMMAND_OEM_SET_NETMASK] = {
+		.command = "oem set_netmask",
+		.dispatch = set_netmask,
+		.privileged = 1
+	},
+	[FASTBOOT_COMMAND_OEM_SET_SERIAL_NUMBER] = {
+		.command = "oem set_serial_number",
+		.dispatch = set_serial_number,
+		.privileged = 1
+	},
+	[FASTBOOT_COMMAND_OEM_SET_PROJECT_ID] = {
+		.command = "oem set_project_id",
+		.dispatch = set_project_id,
+		.privileged = 1
+	},
+	[FASTBOOT_COMMAND_OEM_SET_BOARD_BOOT_POLICY] = {
+		.command = "oem set_board_boot_policy",
+		.dispatch = set_board_boot_policy,
+		.privileged = 1
+	},
+	[FASTBOOT_COMMAND_OEM_SET_EMMC_LAYOUT] = {
+		.command = "oem set_emmc_layout",
+		.dispatch = set_emmc_layout,
+		.privileged = 1
+	},
 };
 
 static void run_privileged_command(char *cmd_parameter, char *response,
