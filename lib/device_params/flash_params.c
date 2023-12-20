@@ -25,11 +25,11 @@ CASSERT(sizeof(struct flash_params) < FLASH_PARAMS_OFFSET_FROM_END);
 
 // Forward-declarations of static functions
 static int get_flash_params_offset(const struct spi_nor *flash);
-static struct spi_nor *probe_flash();
+static struct spi_nor *probe_flash(void);
 static int write_params_to_flash(struct spi_nor *flash, uint32_t flash_params_offset,
 								 const struct flash_params *flash_params);
 static int validate_flash_params(struct flash_params *flash_params, int validate_modified);
-static int init_device_flash_params();
+static int init_device_flash_params(void);
 
 struct flash_params device_flash_params;
 struct flash_params modified_device_flash_params;
@@ -39,7 +39,7 @@ static int get_flash_params_offset(const struct spi_nor *flash)
 	return flash->size - FLASH_PARAMS_OFFSET_FROM_END;
 }
 
-static struct spi_nor *probe_flash()
+static struct spi_nor *probe_flash(void)
 {
 	struct spi_nor *flash = spi_flash_probe(CONFIG_SF_DEFAULT_BUS,
 											CONFIG_SF_DEFAULT_CS,
@@ -133,7 +133,7 @@ static int validate_flash_params(struct flash_params *flash_params, int validate
 	return ret;
 }
 
-static int init_device_flash_params()
+static int init_device_flash_params(void)
 {
 	struct spi_nor *flash = probe_flash();
 	if (!flash)
@@ -168,7 +168,7 @@ int check_serial_number(const char buf[sizeof(((struct flash_params *)0)->serial
 	return 1;
 }
 
-int init_from_spi_flash()
+int init_from_spi_flash(void)
 {
 	if (init_device_flash_params() != 0)
 	{
@@ -211,7 +211,7 @@ int init_from_spi_flash()
 	return 0;
 }
 
-int write_modified_flash_params()
+int write_modified_flash_params(void)
 {
 	struct spi_nor *flash = probe_flash();
 	if (!flash)
@@ -237,7 +237,7 @@ int write_modified_flash_params()
 	return 0;
 }
 
-void initialize_fb_env_from_loaded_params()
+void initialize_fb_env_from_loaded_params(void)
 {
 	set_env_variables_from_params(&device_flash_params, 0);
 }

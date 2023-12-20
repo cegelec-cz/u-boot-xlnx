@@ -61,12 +61,12 @@ int get_boot_policy(const char *identifier);
 void print_boot_policy_help(char *buf, size_t size);
 const char *get_boot_policy_name(board_boot_policy_t policy);
 
-struct blk_desc *mmc_get_device_params_dev();
+struct blk_desc *mmc_get_device_params_dev(void);
 int get_emmc_state(struct emmc_state *emmc_state);
 int write_emmc_state(const struct emmc_state *emmc_state);
 
-int init_from_spi_flash();
-int write_modified_flash_params();
-void initialize_fb_env_from_loaded_params();
+int init_from_spi_flash(void);
+int write_modified_flash_params(void);
+void initialize_fb_env_from_loaded_params(void);
 
 #endif // __DEVICE_PARAMS_H
