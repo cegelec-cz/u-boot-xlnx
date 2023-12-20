@@ -57,7 +57,7 @@ uint32_t compute_emmc_layout_crc(const struct emmc_layout *emmc_layout);
 int check_ethernet_settings(const struct ethernet_settings *ethernet_settings, const char **feedback);
 int check_emmc_layout(const struct emmc_layout *emmc_layout, const char **feedback);
 int check_serial_number(const char buf[sizeof(((struct flash_params *)0)->serial_number)]);
-int get_boot_policy(const char *identifier);
+board_boot_policy_t get_boot_policy(const char *identifier);
 void print_boot_policy_help(char *buf, size_t size);
 const char *get_boot_policy_name(board_boot_policy_t policy);
 

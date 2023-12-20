@@ -180,7 +180,6 @@ int init_from_spi_flash(void)
 
 	modified_device_flash_params = device_flash_params;
 
-	const char *boot_policy_desc = boot_policy_attributes[device_flash_params.board_boot_policy].description;
 	char mac_str[MAC_IP_ADDR_STR_LEN];
 	char ip_str[MAC_IP_ADDR_STR_LEN];
 	char netmask_str[MAC_IP_ADDR_STR_LEN];
@@ -190,7 +189,7 @@ int init_from_spi_flash(void)
 	ip_to_string(device_flash_params.ethernet_settings.netmask, netmask_str);
 
 	printf("Read device parameters from SPI flash:\n"
-		   "\tBoard boot policy: %u (%s)\n"
+		   "\tBoard boot policy: %u\n"
 		   "\tProject ID: %#010x\n"
 		   "\tSerial #: %s\n"
 		   "\tNetwork configuration:\n"
@@ -203,7 +202,7 @@ int init_from_spi_flash(void)
 		   "\t\tRecovery size: %#010x\n"
 		   "\t\tSoftware addr: %#010x\n"
 		   "\t\tSoftware size: %#010x\n\n",
-		   device_flash_params.board_boot_policy, boot_policy_desc, device_flash_params.project_id, device_flash_params.serial_number,
+		   device_flash_params.board_boot_policy, device_flash_params.project_id, device_flash_params.serial_number,
 		   mac_str, ip_str, netmask_str, device_flash_params.emmc_layout.state_addr,
 		   device_flash_params.emmc_layout.recovery_addr, device_flash_params.emmc_layout.recovery_size,
 		   device_flash_params.emmc_layout.software_addr, device_flash_params.emmc_layout.software_size);
