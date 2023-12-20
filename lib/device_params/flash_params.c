@@ -1,6 +1,4 @@
 // SPDX-License-Identifier: GPL-2.0+
-#include "flash_params.h"
-
 #include "emmc_layout.h"
 #include "ethernet_settings.h"
 #include "fb_env_vars.h"

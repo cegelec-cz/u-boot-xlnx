@@ -248,7 +248,7 @@ static int do_cegboot(struct cmd_tbl *cmdtp, int flag, int argc, char *const arg
 		attempt_primary_sw_boot();
 		break;
 	case SW_STATE_FASTBOOT:
-		emmc_state.sw_state = (emmc_state.sw_state == SW_STATE_VALID) ? SW_STATE_UPDATED : emmc_state.sw_state;
+		emmc_state.sw_state = SW_STATE_UPDATED;
 		write_state_and_boot(start_fastboot, &emmc_state);
 		break;
 	case SW_STATE_STARTED:
