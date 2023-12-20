@@ -75,6 +75,19 @@ static int write_emmc_state_internal(uint32_t state_addr, const struct emmc_stat
 	return 0;
 }
 
+struct blk_desc *mmc_get_device_params_dev()
+{
+	struct blk_desc *ret = blk_get_dev("mmc",
+									   CONFIG_DEVICE_PARAMS_MMC_DEV);
+
+	if (!ret || ret->type == DEV_TYPE_UNKNOWN)
+	{
+		printf("Invalid MMC device\n");
+		return NULL;
+	}
+	return ret;
+}
+
 int get_emmc_state(struct emmc_state *emmc_state)
 {
 	return get_emmc_state_internal(device_flash_params.emmc_layout.state_addr, emmc_state);
@@ -84,4 +97,3 @@ int write_emmc_state(const struct emmc_state *emmc_state)
 {
 	return write_emmc_state_internal(device_flash_params.emmc_layout.state_addr, emmc_state);
 }
-
