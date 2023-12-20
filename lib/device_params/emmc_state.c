@@ -26,7 +26,7 @@ static int get_emmc_state_internal(uint32_t state_addr, struct emmc_state *emmc_
 
 	if (state_addr % mmc->blksz != 0)
 	{
-		printf("EMMC state addr %lu not aligned to MMC blocksize\n", state_addr);
+		printf("EMMC state addr %u not aligned to MMC blocksize\n", state_addr);
 		return 1;
 	}
 
@@ -59,7 +59,7 @@ static int write_emmc_state_internal(uint32_t state_addr, const struct emmc_stat
 
 	if (state_addr % mmc->blksz != 0)
 	{
-		printf("EMMC state addr %lu not aligned to MMC blocksize\n", state_addr);
+		printf("EMMC state addr %u not aligned to MMC blocksize\n", state_addr);
 		return 1;
 	}
 

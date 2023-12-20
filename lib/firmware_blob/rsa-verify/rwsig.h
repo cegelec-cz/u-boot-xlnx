@@ -1,6 +1,7 @@
 #ifndef VBOOT_RWSIG_H
 #define VBOOT_RWSIG_H
 
+#include "rsa.h"
 #include "vb21_struct.h"
 
 int rsa_check_signature(
