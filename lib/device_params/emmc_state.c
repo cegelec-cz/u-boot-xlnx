@@ -20,20 +20,20 @@ static int get_emmc_state_internal(uint32_t state_addr, struct emmc_state *emmc_
 	uint8_t buf[CONFIG_DEVICE_PARAMS_EMMC_BLOCKSIZE];
 	if (mmc->blksz > sizeof(buf))
 	{
-		printf("MMC blocksize too big: %u\n", mmc->blksz);
+		printf("MMC blocksize too big: %lu\n", mmc->blksz);
 		return 1;
 	}
 
 	if (state_addr % mmc->blksz != 0)
 	{
-		printf("EMMC state addr %u not aligned to MMC blocksize\n", state_addr);
+		printf("EMMC state addr %lu not aligned to MMC blocksize\n", state_addr);
 		return 1;
 	}
 
 	lbaint_t blk = state_addr / mmc->blksz;
 	if (blk_dread(mmc, blk, 1, buf) != 1)
 	{
-		printf("Failed to read EMMC state block %u\n", blk);
+		printf("Failed to read EMMC state block %lu\n", blk);
 		return 1;
 	}
 
@@ -53,13 +53,13 @@ static int write_emmc_state_internal(uint32_t state_addr, const struct emmc_stat
 	uint8_t buf[CONFIG_DEVICE_PARAMS_EMMC_BLOCKSIZE];
 	if (mmc->blksz > sizeof(buf))
 	{
-		printf("MMC blocksize too big: %u\n", mmc->blksz);
+		printf("MMC blocksize too big: %lu\n", mmc->blksz);
 		return 1;
 	}
 
 	if (state_addr % mmc->blksz != 0)
 	{
-		printf("EMMC state addr %u not aligned to MMC blocksize\n", state_addr);
+		printf("EMMC state addr %lu not aligned to MMC blocksize\n", state_addr);
 		return 1;
 	}
 
@@ -68,7 +68,7 @@ static int write_emmc_state_internal(uint32_t state_addr, const struct emmc_stat
 	lbaint_t blk = state_addr / mmc->blksz;
 	if (blk_dwrite(mmc, blk, 1, buf) != 1)
 	{
-		printf("Failed to write EMMC state block %u\n", blk);
+		printf("Failed to write EMMC state block %lu\n", blk);
 		return 1;
 	}
 

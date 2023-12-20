@@ -58,7 +58,7 @@ int vblock_check_signature(
 
 	if (vb21_key->c.magic != VB21_MAGIC_PACKED_KEY ||
 	    vb21_key->key_size != sizeof(struct rsa_public_key)) {
-		printf("Invalid vblock key. %d vs. %lu\n", vb21_key->key_size, sizeof(struct rsa_public_key));
+		printf("Invalid vblock key. %d vs. %u\n", vb21_key->key_size, sizeof(struct rsa_public_key));
 		goto out;
 	}
 	key = (const struct rsa_public_key *)

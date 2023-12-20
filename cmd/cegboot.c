@@ -33,8 +33,7 @@ const char *const critical_boot_failure_msg[CRITICAL_BOOT_FAILURE_COUNT] = {
 	[CRITICAL_BOOT_FAILURE_BOOTELF_NOT_EXECUTED] = "bootelf command not executed",
 };
 
-static int
-load_emmc_image(uint32_t addr)
+static int load_emmc_image(uint32_t addr)
 {
 	struct blk_desc *dev = mmc_get_device_params_dev();
 	if (!dev)
@@ -104,7 +103,7 @@ load_emmc_image(uint32_t addr)
 	return 0;
 }
 
-static void start_fastboot()
+static void start_fastboot(void)
 {
 	initialize_fb_env_from_loaded_params();
 	while (1) // Attempt to run fastboot indefinitely
@@ -122,7 +121,7 @@ static void critical_boot_failure(critical_boot_failure_t failure)
 	start_fastboot();
 }
 
-static void boot_loaded_image()
+static void boot_loaded_image(void)
 {
 	const struct blob_header *blob_header = (struct blob_header *)CONFIG_FASTBOOT_BUF_ADDR;
 	uint32_t bitstream_load_addr = (uint32_t)blob_header + sizeof(*blob_header) + blob_header->package_identifier_len;
@@ -156,7 +155,7 @@ static void init_validate_blob_input(struct validate_blob_input *validate_blob_i
 	validate_blob_input->board_partition = partition;
 }
 
-static void attempt_recovery_boot()
+static void attempt_recovery_boot(void)
 {
 	env_set("fastboot.bootstep_recovery", "attempting recovery boot");
 
@@ -182,7 +181,7 @@ static void attempt_recovery_boot()
 	boot_loaded_image();
 }
 
-static void attempt_primary_sw_boot()
+static void attempt_primary_sw_boot(void)
 {
 	env_set("fastboot.bootstep_primary_sw", "attempting primary sw boot");
 
@@ -216,7 +215,7 @@ static void write_state_and_boot(void (*boot_cb)(void), const struct emmc_state 
 		return critical_boot_failure(CRITICAL_BOOT_FAILURE_WRITE_MMC_STATE);
 }
 
-static void initialize_diagnostic_env_variables()
+static void initialize_diagnostic_env_variables(void)
 {
 	const char *na = "not attempted";
 	env_set("fastboot.bootstep_primary_sw", na);
@@ -224,7 +223,7 @@ static void initialize_diagnostic_env_variables()
 	env_set("fastboot.critical_bootfail", "critical boot failure not present");
 }
 
-int do_cegboot(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
+static int do_cegboot(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
 {
 	initialize_diagnostic_env_variables();
 

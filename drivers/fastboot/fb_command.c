@@ -299,34 +299,6 @@ static void erase(char *cmd_parameter, char *response)
 	fastboot_mmc_erase(cmd_parameter, response);
 }
 
-/**
- * reboot_bootloader() - Sets reboot bootloader flag.
- *
- * @cmd_parameter: Pointer to command parameter
- * @response: Pointer to fastboot response buffer
- */
-static void reboot_bootloader(char *cmd_parameter, char *response)
-{
-	if (fastboot_set_reboot_flag(FASTBOOT_REBOOT_REASON_BOOTLOADER))
-		fastboot_fail("Cannot set reboot flag", response);
-	else
-		fastboot_okay(NULL, response);
-}
-
-/**
- * reboot_fastbootd() - Sets reboot fastboot flag.
- *
- * @cmd_parameter: Pointer to command parameter
- * @response: Pointer to fastboot response buffer
- */
-static void reboot_fastbootd(char *cmd_parameter, char *response)
-{
-	if (fastboot_set_reboot_flag(FASTBOOT_REBOOT_REASON_FASTBOOTD))
-		fastboot_fail("Cannot set fastboot flag", response);
-	else
-		fastboot_okay(NULL, response);
-}
-
 static void unlock(char *cmd_parameter, char *response)
 {
 	// TODO: implement
@@ -576,20 +548,6 @@ static void set_emmc_layout(char *cmd_parameter, char *response)
 
 	modified_device_flash_params.emmc_layout = emmc_layout;
 	fastboot_okay(NULL, response);
-}
-
-/**
- * reboot_recovery() - Sets reboot recovery flag.
- *
- * @cmd_parameter: Pointer to command parameter
- * @response: Pointer to fastboot response buffer
- */
-static void reboot_recovery(char *cmd_parameter, char *response)
-{
-	if (fastboot_set_reboot_flag(FASTBOOT_REBOOT_REASON_RECOVERY))
-		fastboot_fail("Cannot set recovery flag", response);
-	else
-		fastboot_okay(NULL, response);
 }
 
 #if CONFIG_IS_ENABLED(FASTBOOT_CMD_OEM_FORMAT)
