@@ -9,6 +9,7 @@
 #include <u-boot/crc.h>
 #include <device_params.h>
 
+#define MAC_IP_ADDR_STR_LEN 20
 #define MAX_UINT32 0xFFFFFFFFUL
 
 void write_default_ethernet_settings(struct ethernet_settings *ethernet_settings)

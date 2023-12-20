@@ -3,8 +3,10 @@
 
 #include "dp_err_feedback.h"
 
+#include <blk.h>
 #include <cassert.h>
 #include <device_params.h>
+#include <u-boot/crc.h>
 
 // Check overlap of state <-> backup, state <-> software and backup <-> software partitions
 #define CHECK_EMMC_OVERLAP(state_start, state_size,                \
