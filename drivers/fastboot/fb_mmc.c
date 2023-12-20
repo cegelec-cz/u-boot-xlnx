@@ -524,7 +524,7 @@ int fastboot_mmc_get_part_info(const char *part_name,
 
 #endif
 
-static struct blk_desc *fastboot_mmc_get_dev(char *response)
+struct blk_desc *fastboot_mmc_get_dev(char *response)
 {
 	struct blk_desc *ret = blk_get_dev("mmc",
 									   CONFIG_DEVICE_PARAMS_MMC_DEV);

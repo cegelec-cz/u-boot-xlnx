@@ -3,6 +3,7 @@
  * Copyright (C) 2016 The Android Open Source Project
  */
 
+#include <blk.h>
 #include <common.h>
 #include <command.h>
 #include <env.h>
@@ -499,7 +500,7 @@ static void set_board_boot_policy(char *cmd_parameter, char *response)
 
 static void set_emmc_layout(char *cmd_parameter, char *response)
 {
-	const char *help = "Invalid EMMC layout input. Expecting (addresses and sizes in hex): STATE_ADDR STATE_SIZE BACKUP_ADDR BACKUP_SIZE SOFTWARE_ADDR SOFTWARE_SIZE";
+	const char *help = "Invalid EMMC layout input. Expecting (addresses and sizes in hex): STATE_ADDR BACKUP_ADDR BACKUP_SIZE SOFTWARE_ADDR SOFTWARE_SIZE";
 
 	if (!cmd_parameter)
 	{
@@ -507,11 +508,16 @@ static void set_emmc_layout(char *cmd_parameter, char *response)
 		return;
 	}
 
-	struct emmc_layout emmc_layout;
+	struct blk_desc *mmc = fastboot_mmc_get_dev(response);
+	if (!mmc)
+		return;
+
+	struct emmc_layout emmc_layout = {
+		.state_size = mmc->blksz,
+	};
 
 	uint32_t *const write[] = {
 		&emmc_layout.state_addr,
-		&emmc_layout.state_size,
 		&emmc_layout.recovery_addr,
 		&emmc_layout.recovery_size,
 		&emmc_layout.software_addr,
