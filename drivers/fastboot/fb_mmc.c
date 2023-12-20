@@ -23,9 +23,6 @@
 #include <boot_policy.h>
 #include <validate_blob.h>
 
-// FIXME
-#define CONFIG_FASTBOOT_FLASH_MMC_DEV 0
-
 #define FASTBOOT_MAX_BLK_WRITE 16384
 
 /**
