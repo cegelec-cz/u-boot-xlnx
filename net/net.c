@@ -94,6 +94,7 @@
 #include <net6.h>
 #include <ndisc.h>
 #include <net/fastboot.h>
+#include <net/hardflash_request.h>
 #include <net/tftp.h>
 #include <net/ncsi.h>
 #if defined(CONFIG_CMD_PCAP)
@@ -497,6 +498,11 @@ restart:
 #ifdef CONFIG_UDP_FUNCTION_FASTBOOT
 		case FASTBOOT:
 			fastboot_start_server();
+			break;
+#endif
+#ifdef CONFIG_HARDFLASH_REQUEST
+		case HARDFLASH_REQUEST:
+			start_hardflash_request_server();
 			break;
 #endif
 #if defined(CONFIG_CMD_DHCP)
@@ -1306,7 +1312,8 @@ void net_process_received_packet(uchar *in_packet, int len)
 		/* If it is not for us, ignore it */
 		dst_ip = net_read_ip(&ip->ip_dst);
 		if (net_ip.s_addr && dst_ip.s_addr != net_ip.s_addr &&
-		    dst_ip.s_addr != 0xFFFFFFFF) {
+		    dst_ip.s_addr != 0xFFFFFFFF &&
+			(dst_ip.s_addr != (net_ip.s_addr | (~net_netmask.s_addr)))) {
 				return;
 		}
 		/* Read source IP address for later use */
@@ -1489,6 +1496,7 @@ common:
 	case NETCONS:
 	case FASTBOOT:
 	case TFTPSRV:
+	case HARDFLASH_REQUEST:
 		if (IS_ENABLED(CONFIG_IPV6) && use_ip6) {
 			if (!memcmp(&net_link_local_ip6, &net_null_addr_ip6,
 				    sizeof(struct in6_addr))) {

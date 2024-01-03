@@ -14,6 +14,7 @@
 #include <env.h>
 #include <firmware_blob.h>
 #include <validate_blob.h>
+#include <net/hardflash_request.h>
 
 typedef enum
 {
@@ -218,6 +219,7 @@ static void write_state_and_boot(void (*boot_cb)(void), const struct emmc_state 
 static void initialize_diagnostic_env_variables(void)
 {
 	const char *na = "not attempted";
+	env_set("fastboot.bootstep_hardflash", na);
 	env_set("fastboot.bootstep_primary_sw", na);
 	env_set("fastboot.bootstep_recovery", na);
 	env_set("fastboot.critical_bootfail", "critical boot failure not present");
@@ -231,11 +233,14 @@ static int do_cegboot(struct cmd_tbl *cmdtp, int flag, int argc, char *const arg
 	if (get_emmc_state(&emmc_state) != 0)
 		critical_boot_failure(CRITICAL_BOOT_FAILURE_GET_MMC_STATE);
 
-	if (emmc_state.sw_state > SW_STATE_COUNT)
+	run_command("process_hardflash_request", 0);
+	if (get_hardflash_request())
 	{
-		emmc_state.sw_state = SW_STATE_FAILED;
-		if (write_emmc_state(&emmc_state) != 0)
-			critical_boot_failure(CRITICAL_BOOT_FAILURE_WRITE_MMC_STATE);
+		env_set("fastboot.bootstep_hardflash", "hardflash request received");
+		start_fastboot();
+
+		// Should not get here
+		return 1;
 	}
 
 	switch (emmc_state.sw_state)

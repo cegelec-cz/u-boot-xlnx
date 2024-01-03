@@ -88,4 +88,23 @@ config DEVICE_PARAMS_EMMC_BLOCKSIZE
 	  This is used to determine size of buffers for reading eMMC blocks and for
 	  compile-time validation of default eMMC layout validity.
 
+config HARDFLASH_REQUEST
+	bool "Enable detection of UDP hardflash request before executing boot logic"
+
+if HARDFLASH_REQUEST
+
+config HARDFLASH_REQUEST_UDP_PORT
+	int "UDP port for listening to hardflash request packets"
+	default 41678
+
+config BEACON_UDP_DST_PORT
+	int "UDP destination port for beacon packet"
+	default 49152
+
+config HARDFLASH_REQUEST_TIMEOUT
+	int "Time to wait for hardflash request packet before continuing boot sequence (milliseconds)"
+	default 200
+
+endif # HARDFLASH_REQUEST
+
 endif # CEGELEC_FW_BLOB

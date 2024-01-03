@@ -71,10 +71,6 @@ static const struct
 		.command = "erase",
 		.dispatch = erase
 	},
-	[FASTBOOT_COMMAND_BOOT] = {
-		.command = "boot",
-		.dispatch = okay
-	},
 	[FASTBOOT_COMMAND_REBOOT] = {
 		.command = "reboot",
 		.dispatch = okay

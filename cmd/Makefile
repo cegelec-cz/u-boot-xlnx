@@ -222,6 +222,7 @@ obj-$(CONFIG_CMD_AVB) += avb.o
 obj-$(CONFIG_CMD_SCP03) += scp03.o
 
 obj-$(CONFIG_CEGELEC_FW_BLOB) += cegboot.o
+obj-$(CONFIG_HARDFLASH_REQUEST) += hardflash_request.o
 
 obj-$(CONFIG_ARM) += arm/
 obj-$(CONFIG_RISCV) += riscv/
