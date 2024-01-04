@@ -5,13 +5,23 @@
 
 #include <common.h>
 #include <command.h>
+#include <linux/delay.h>
 #include <net.h>
+
+#define RETRY_DELAY_MS 200
 
 static int do_hardflash_request(struct cmd_tbl *cmdtp, int flag, int argc,
 								char *const argv[])
 {
 #if CONFIG_IS_ENABLED(HARDFLASH_REQUEST)
 	int err = net_loop(HARDFLASH_REQUEST);
+
+	// Retry once if timeout occurs
+	if (err == -ETIMEDOUT)
+	{
+		mdelay(RETRY_DELAY_MS);
+		err = net_loop(HARDFLASH_REQUEST);
+	}
 
 	if (err < 0)
 	{

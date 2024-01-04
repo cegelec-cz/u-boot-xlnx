@@ -8,8 +8,8 @@
 #include <net.h>
 #include <device_params.h>
 
-#define BEACON_TIMEOUT_MS 10
-#define SENT_BEACONS 3
+#define BEACON_TIMEOUT_MS 4
+#define SENT_BEACONS 40
 
 static const uint8_t expected_hardflash_request_magic[] = {0xa0, 0xff, 0xb0, 0xff, 0xc0, 0xff, 0xd0, 0xff, 0x0a, 0xff, 0x0b, 0xff, 0x0c, 0xff, 0x0d, 0xff};
 static unsigned int hardflash_request_port = 0;
