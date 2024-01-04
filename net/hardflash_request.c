@@ -24,17 +24,25 @@ CASSERT(ETHER_HDR_SIZE + IP_UDP_HDR_SIZE +
 
 static void send_beacon(void)
 {
-	uint8_t *packet = net_tx_packet + net_eth_hdr_size() + IP_UDP_HDR_SIZE;
+	uint8_t *packet_base = net_tx_packet + net_eth_hdr_size() + IP_UDP_HDR_SIZE;
+	uint8_t *packet = packet_base;
+
+	uint32_t tmp = htonl(device_flash_params.project_id);
+	memcpy(packet, &tmp, sizeof(tmp));
+	packet += sizeof(tmp);
+
 	size_t len = strnlen(device_flash_params.serial_number,
 						 sizeof(device_flash_params.serial_number));
 	memcpy(packet, device_flash_params.serial_number, len);
+	packet += len;
 
 	// Will be replaced by ethernet broadcast in net_send_udp_packet
 	u8 eth_addr[6] = {};
 	// IPv4 broadcast
 	struct in_addr dst_addr = {.s_addr = 0xFFFFFFFF};
 
-	net_send_udp_packet(eth_addr, dst_addr, beacon_dst_port, beacon_src_port, len);
+	size_t packet_len = packet - packet_base;
+	net_send_udp_packet(eth_addr, dst_addr, beacon_dst_port, beacon_src_port, packet_len);
 }
 
 static void hardflash_request_handler(uchar *packet, unsigned int dport,
