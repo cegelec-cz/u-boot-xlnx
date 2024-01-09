@@ -9,6 +9,8 @@
 #ifndef __UB_STDINT_H
 #define __UB_STDINT_H
 
+#include <linux/types.h>
+
 #define UINT8_MAX	0xff
 
 #endif

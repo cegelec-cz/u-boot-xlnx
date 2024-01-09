@@ -1,9 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0+
 #
-# Copyright (c) 2013, Google Inc.
+# Copyright (c) 2023, Cegelec a.s.
 #
-# (C) Copyright 2000-2007
-# Wolfgang Denk, DENX Software Engineering, wd@denx.de.
 
-obj-y += rsa-verify/
-obj-y += verify_blob_integrity.o validate_blob.o
+obj-y += src/rsa-verify/rsa.o src/rsa-verify/rwsig.o src/rsa-verify/sha256.o
+obj-y += src/verify_blob_integrity.o src/validate_blob.o
